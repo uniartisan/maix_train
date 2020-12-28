@@ -199,7 +199,12 @@ class Train():
             log.e("train datasets not valid: {}".format(e))
             raise Exception((TrainFailReason.ERROR_PARAM, "datasets not valid: {}".format(str(e))))
         try:
-            classifier.train(epochs=config.classifier_train_epochs, batch_size=config.classifier_train_batch_size, progress_cb=self.__on_train_progress)
+            if(hasattr(config, 'classifier_train_refune_from')):
+                classifier.train(epochs=config.classifier_train_epochs, batch_size=config.classifier_train_batch_size,
+                                 progress_cb=self.__on_train_progress, weights=config.classifier_train_refune_from)
+            else:
+                classifier.train(epochs=config.classifier_train_epochs, batch_size=config.classifier_train_batch_size,
+                                 progress_cb=self.__on_train_progress)
         except Exception as e:
             log.e("train error: {}".format(e))
             traceback.print_exc()

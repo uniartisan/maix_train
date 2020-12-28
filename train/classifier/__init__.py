@@ -124,9 +124,14 @@ class Classifier(Train_Base):
                      weights=weights, include_top=False)
         # update top layer
         out = base_model.output
-        out = tf.keras.layers.Dropout(0.001, name='dropout')(out)
-        preds=tf.keras.layers.Dense(len(self.labels), activation='softmax')(out)
-        self.model=tf.keras.models.Model(inputs=base_model.input,outputs=preds)
+        if (weights == os.path.join(curr_file_dir, "weights", "mobilenet_7_5_224_tf_no_top.h5")):
+            out = tf.keras.layers.Dropout(0.001, name='dropout')(out)
+            preds=tf.keras.layers.Dense(len(self.labels), activation='softmax')(out)
+            self.model = tf.keras.models.Model(
+                inputs=base_model.input, outputs=preds)
+        else:
+            self.model = tf.keras.models.Model(
+                inputs=base_model.input, outputs=out)
         # only train top layers
         for layer in self.model.layers[:86]:
             layer.trainable=False

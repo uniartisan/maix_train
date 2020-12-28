@@ -53,6 +53,7 @@ https://github.com/tensorflow/models/blob/master/research/slim/nets/mobilenet_v1
 from __future__ import print_function
 from __future__ import absolute_import
 from __future__ import division
+from tensorflow import keras
 
 import os
 import warnings
@@ -62,7 +63,8 @@ from . import imagenet_utils
 from .imagenet_utils import decode_predictions
 from .imagenet_utils import _obtain_input_shape
 
-BASE_WEIGHT_PATH = ('https://github.com/TonyZ1Min/Yolo-digit-detector/blob/master/')
+BASE_WEIGHT_PATH = (
+    'https://github.com/TonyZ1Min/Yolo-digit-detector/blob/master/')
 
 backend = None
 layers = None
@@ -254,13 +256,13 @@ def MobileNet(input_shape=None,
     x = _depthwise_conv_block(x, 512, alpha, depth_multiplier, block_id=9)
     x = _depthwise_conv_block(x, 512, alpha, depth_multiplier, block_id=10)
     x = _depthwise_conv_block(x, 512, alpha, depth_multiplier, block_id=11)
-    #到此为降采样16
-    
+    # 到此为降采样16
+
     x = _depthwise_conv_block(x, 1024, alpha, depth_multiplier,
                               strides=(1, 1), block_id=12)
     x = _depthwise_conv_block(x, 1024, alpha, depth_multiplier, block_id=13)
-    
-    #到此为降采样32
+
+    # 到此为降采样32
     if include_top:
         if backend.image_data_format() == 'channels_first':
             shape = (int(1024 * alpha), 1, 1)
@@ -322,7 +324,12 @@ def MobileNet(input_shape=None,
         model.load_weights('mobilenet_7_5_224_tf_no_top.h5')
         '''
     elif weights is not None:
-        model.load_weights(weights)
+        #   model.load_weights(weights)
+        if ("mobilenet_7_5_224_tf_no_top.h5" in weights):
+            model.load_weights(weights)
+            print(weights)
+        else:
+            model = keras.models.load_model(weights)
 
     if old_data_format:
         backend.set_image_data_format(old_data_format)
@@ -380,7 +387,8 @@ def _conv_block(inputs, filters, alpha, kernel=(3, 3), strides=(1, 1)):
     """
     channel_axis = 1 if backend.image_data_format() == 'channels_first' else -1
     filters = int(filters * alpha)
-    x = layers.ZeroPadding2D(padding=((1, 1), (1, 1)), name='conv1_pad')(inputs)
+    x = layers.ZeroPadding2D(padding=((1, 1), (1, 1)),
+                             name='conv1_pad')(inputs)
     x = layers.Conv2D(filters, kernel,
                       padding='valid',
                       use_bias=False,
@@ -452,7 +460,8 @@ def _depthwise_conv_block(inputs, pointwise_conv_filters, alpha,
         x = layers.ZeroPadding2D(((1, 1), (1, 1)),
                                  name='conv_pad_%d' % block_id)(inputs)
     x = layers.DepthwiseConv2D((3, 3),
-                               padding='same' if strides == (1, 1) else 'valid',
+                               padding='same' if strides == (
+                                   1, 1) else 'valid',
                                depth_multiplier=depth_multiplier,
                                strides=strides,
                                use_bias=False,
@@ -470,34 +479,35 @@ def _depthwise_conv_block(inputs, pointwise_conv_filters, alpha,
                                   name='conv_pw_%d_bn' % block_id)(x)
     return layers.ReLU(6., name='conv_pw_%d_relu' % block_id)(x)
 
+
 #################### add ######################
-from tensorflow import keras
+
 
 def MobileNet0(input_shape=None,
-              alpha=1.0,
-              depth_multiplier=1,
-              dropout=1e-3,
-              include_top=True,
-              weights='imagenet',
-              input_tensor=None,
-              pooling=None,
-              classes=1000,
-              backend=keras.backend,
-              layers=keras.layers,
-              models=keras.models,
-              utils=keras.utils,
-              **kwargs):
+               alpha=1.0,
+               depth_multiplier=1,
+               dropout=1e-3,
+               include_top=True,
+               weights='imagenet',
+               input_tensor=None,
+               pooling=None,
+               classes=1000,
+               backend=keras.backend,
+               layers=keras.layers,
+               models=keras.models,
+               utils=keras.utils,
+               **kwargs):
     return MobileNet(
-              input_shape=input_shape,
-              alpha=alpha,
-              depth_multiplier=depth_multiplier,
-              dropout=dropout,
-              include_top=include_top,
-              weights=weights,
-              input_tensor=input_tensor,
-              pooling=pooling,
-              classes=classes,
-              backend=backend,
-              layers=layers,
-              models=models,
-              utils=utils)
+        input_shape=input_shape,
+        alpha=alpha,
+        depth_multiplier=depth_multiplier,
+        dropout=dropout,
+        include_top=include_top,
+        weights=weights,
+        input_tensor=input_tensor,
+        pooling=pooling,
+        classes=classes,
+        backend=backend,
+        layers=layers,
+        models=models,
+        utils=utils)
